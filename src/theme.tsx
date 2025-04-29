@@ -1,5 +1,29 @@
 import { createTheme, ThemeProvider, PaletteMode, ThemeOptions } from '@mui/material';
-import { createContext, useState, useMemo, ReactNode } from 'react';
+import { createContext, useState, useMemo, ReactNode, useEffect } from 'react';
+import { keyframes } from '@mui/system';
+
+// Animation keyframes
+export const fadeIn = keyframes`
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+`;
+
+export const pulseAnimation = keyframes`
+  0% { transform: scale(1); }
+  50% { transform: scale(1.05); }
+  100% { transform: scale(1); }
+`;
+
+export const glowAnimation = keyframes`
+  0% { box-shadow: 0 0 5px rgba(58, 111, 247, 0.5); }
+  50% { box-shadow: 0 0 20px rgba(58, 111, 247, 0.8); }
+  100% { box-shadow: 0 0 5px rgba(58, 111, 247, 0.5); }
+`;
+
+export const shimmerAnimation = keyframes`
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+`;
 
 // Color design tokens
 const getDesignTokens = (mode: PaletteMode): ThemeOptions => ({
@@ -51,6 +75,7 @@ const getDesignTokens = (mode: PaletteMode): ThemeOptions => ({
     },
     h3: {
       fontWeight: 700,
+      letterSpacing: '-0.5px'
     },
     h4: {
       fontWeight: 600,
@@ -98,18 +123,52 @@ const getDesignTokens = (mode: PaletteMode): ThemeOptions => ({
     '0px 48px 96px rgba(0,0,0,0.62)',
   ] as const,
   components: {
+    MuiCssBaseline: {
+      styleOverrides: {
+        body: {
+          transition: 'all 0.3s ease',
+        },
+      },
+    },
+    MuiPaper: {
+      styleOverrides: {
+        root: {
+          transition: 'transform 0.3s ease, box-shadow 0.3s ease',
+        },
+        rounded: {
+          borderRadius: 12,
+        },
+      },
+    },
     MuiButton: {
       styleOverrides: {
         root: {
           borderRadius: 8,
           boxShadow: 'none',
+          position: 'relative',
+          overflow: 'hidden',
+          '&::after': {
+            content: '""',
+            position: 'absolute',
+            top: 0,
+            left: '-100%',
+            width: '200%',
+            height: '100%',
+            background: 'linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent)',
+            opacity: 0,
+            transition: 'opacity 0.3s ease',
+          },
           '&:hover': {
             boxShadow: '0px 4px 8px rgba(0,0,0,0.12)',
+            '&::after': {
+              opacity: 1,
+              animation: `${shimmerAnimation} 1s linear infinite`,
+            },
           },
         },
         containedPrimary: {
           '&:hover': {
-            transform: 'translateY(-1px)',
+            transform: 'translateY(-2px)',
           },
         },
       },
@@ -118,13 +177,10 @@ const getDesignTokens = (mode: PaletteMode): ThemeOptions => ({
       styleOverrides: {
         root: {
           borderRadius: 16,
-        },
-      },
-    },
-    MuiPaper: {
-      styleOverrides: {
-        rounded: {
-          borderRadius: 12,
+          transition: 'transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1)',
+          '&:hover': {
+            transform: 'translateY(-5px)',
+          },
         },
       },
     },
@@ -132,6 +188,40 @@ const getDesignTokens = (mode: PaletteMode): ThemeOptions => ({
       styleOverrides: {
         root: {
           borderRadius: 8,
+          transition: 'box-shadow 0.3s ease, transform 0.2s ease',
+          '&:focus-within': {
+            transform: 'scale(1.01)',
+          }
+        },
+      },
+    },
+    MuiTypography: {
+      styleOverrides: {
+        h3: {
+          animation: `${fadeIn} 1s ease-out`,
+        },
+      }
+    },
+    MuiIconButton: {
+      styleOverrides: {
+        root: {
+          transition: 'transform 0.2s ease',
+          '&:hover': {
+            transform: 'scale(1.1)',
+          },
+        },
+      },
+    },
+    MuiTextField: {
+      styleOverrides: {
+        root: {
+          '& .MuiOutlinedInput-root': {
+            transition: 'transform 0.2s ease, box-shadow 0.3s ease',
+            '&:focus-within': {
+              transform: 'translateY(-2px)',
+              boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
+            },
+          },
         },
       },
     },
@@ -146,7 +236,16 @@ export const ColorModeContext = createContext({
 
 // Theme provider component
 export const ThemeProviderWrapper = ({ children }: { children: ReactNode }) => {
-  const [mode, setMode] = useState<PaletteMode>('light');
+  // Initialize mode from localStorage or default to 'light'
+  const [mode, setMode] = useState<PaletteMode>(() => {
+    const savedMode = localStorage.getItem('colorMode');
+    return (savedMode as PaletteMode) || 'light';
+  });
+
+  // Save mode to localStorage whenever it changes
+  useEffect(() => {
+    localStorage.setItem('colorMode', mode);
+  }, [mode]);
 
   const colorMode = useMemo(
     () => ({
