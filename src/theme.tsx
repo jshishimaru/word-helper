@@ -1,8 +1,8 @@
-import { createTheme, ThemeProvider, PaletteMode } from '@mui/material';
+import { createTheme, ThemeProvider, PaletteMode, ThemeOptions } from '@mui/material';
 import { createContext, useState, useMemo, ReactNode } from 'react';
 
 // Color design tokens
-const getDesignTokens = (mode: PaletteMode) => ({
+const getDesignTokens = (mode: PaletteMode): ThemeOptions => ({
   palette: {
     mode,
     ...(mode === 'light'
@@ -95,7 +95,8 @@ const getDesignTokens = (mode: PaletteMode) => ({
     '0px 42px 84px rgba(0,0,0,0.55)',
     '0px 44px 88px rgba(0,0,0,0.58)',
     '0px 46px 92px rgba(0,0,0,0.6)',
-  ],
+    '0px 48px 96px rgba(0,0,0,0.62)',
+  ] as const,
   components: {
     MuiButton: {
       styleOverrides: {
